@@ -1,15 +1,13 @@
 <template>
   <div>
-    <div 
-      id="map"
-      @mouseover="mouseOverMap"
-      @mouseleave="mouseOutMap"
-    />
+    <div id="map" @mouseover="mouseOverMap" @mouseleave="mouseOutMap" />
     <v-btn
       id="hide-map-button"
-      v-if="viewport.width < 450 && 
-            !state.isGuessButtonClicked && 
-            state.isMakeGuessButtonClicked"
+      v-if="
+        viewport.width < 450 &&
+        !state.isGuessButtonClicked &&
+        state.isMakeGuessButtonClicked
+      "
       @click="hideMap"
       fab
       x-small
@@ -19,21 +17,24 @@
     </v-btn>
     <button
       id="make-guess-button"
-      v-if="viewport.width < 450 && 
-            !state.isGuessButtonClicked && 
-            !state.isMakeGuessButtonClicked"
+      v-if="
+        viewport.width < 450 &&
+        !state.isGuessButtonClicked &&
+        !state.isMakeGuessButtonClicked
+      "
       @click="showMap"
     >
       MAKE GUESS
     </button>
     <button
       id="guess-button"
-      :disabled="state.selectedLatLng === null || 
-                  state.isGuessButtonClicked"
-      v-if="!state.isGuessButtonClicked && 
-            (viewport.width > 450 || state.isMakeGuessButtonClicked)"
+      :disabled="state.selectedLatLng === null || state.isGuessButtonClicked"
+      v-if="
+        !state.isGuessButtonClicked &&
+        (viewport.width > 450 || state.isMakeGuessButtonClicked)
+      "
       @click="selectLocation"
-      >
+    >
       GUESS
     </button>
     <button
@@ -55,14 +56,21 @@
       :score="score"
       @playAgain="playAgain"
     />
-  </div> 
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, watch, onMounted, PropType, inject, } from '@vue/composition-api'
+import {
+  defineComponent,
+  reactive,
+  watch,
+  onMounted,
+  PropType,
+  inject,
+} from "@vue/composition-api";
 
-import { Viewport } from '@/types/index'
-import DialogSummary from '@/components/widgets/dialog/DialogSummary.vue'
+import { Viewport } from "@/types/index";
+import DialogSummary from "@/components/widgets/dialog/DialogSummary.vue";
 
 export default defineComponent({
   props: {
@@ -85,7 +93,7 @@ export default defineComponent({
   },
 
   setup(props, context) {
-    const viewport: Viewport = inject('viewport') as Viewport
+    const viewport: Viewport = inject("viewport") as Viewport;
 
     const state = reactive<{
       markers: google.maps.Marker[];
@@ -106,138 +114,148 @@ export default defineComponent({
       isGuessButtonClicked: false,
       isMakeGuessButtonClicked: false,
       isSelected: false,
-      dialogSummary: false,  
-    })
+      dialogSummary: false,
+    });
 
     function showMap(): void {
-      document.getElementById('map')!.style.transform = "translateY(-340px)"
-      state.isMakeGuessButtonClicked = true
+      document.getElementById("map")!.style.transform = "translateY(-340px)";
+      state.isMakeGuessButtonClicked = true;
     }
 
     function hideMap(): void {
-      document.getElementById('map')!.style.transform = "translateY(300px)"
-      state.isMakeGuessButtonClicked = false
+      document.getElementById("map")!.style.transform = "translateY(300px)";
+      state.isMakeGuessButtonClicked = false;
     }
 
     function selectLocation(): void {
-      calculateDistance()
-      drawPolyline()
-      putMarker(props!.randomLatLng!)
-      setInfoWindow()
+      calculateDistance();
+      drawPolyline();
+      putMarker(props!.randomLatLng!);
+      setInfoWindow();
 
-      google.maps.event.clearListeners(state.map!, 'click')
+      google.maps.event.clearListeners(state.map!, "click");
 
-      state.isGuessButtonClicked = true
-      state.isSelected = true
+      state.isGuessButtonClicked = true;
+      state.isSelected = true;
 
-      mouseOverMap()
+      mouseOverMap();
     }
 
     function putMarker(position: google.maps.LatLng): void {
       const marker = new google.maps.Marker({
         position: position,
         map: state.map!,
-      })
-      state.markers.push(marker)
+      });
+      state.markers.push(marker);
     }
 
     function removeMarkers(): void {
       for (let i = 0; i < state.markers.length; i++) {
-        state.markers[i].setMap(null)
+        state.markers[i].setMap(null);
       }
-      state.markers = []
+      state.markers = [];
     }
 
     function calculateDistance(): void {
-      state.distance = 
-        Math.floor(google.maps.geometry.spherical.computeDistanceBetween(props!.randomLatLng!, state.selectedLatLng!) / 1000)
-      context.emit('calculateDistance', state.distance)
+      state.distance = Math.floor(
+        google.maps.geometry.spherical.computeDistanceBetween(
+          props!.randomLatLng!,
+          state.selectedLatLng!
+        ) / 1000
+      );
+      context.emit("calculateDistance", state.distance);
     }
 
     function setInfoWindow(): void {
       const infoWindow = new google.maps.InfoWindow({
-        content: '<b>' + state.distance + '</b> km away!'
-      })
-      infoWindow.open(state.map!, state.markers[0])
+        content: "<b>" + state.distance + "</b> km away!",
+      });
+      infoWindow.open(state.map!, state.markers[0]);
     }
 
     function drawPolyline(): void {
       state.polyline = new google.maps.Polyline({
         path: [state.selectedLatLng!, props!.randomLatLng!],
-        strokeColor: '#FF0000',
-      })
-      state.polyline!.setMap(state.map!)
+        strokeColor: "#FF0000",
+      });
+      state.polyline!.setMap(state.map!);
     }
 
     function goToNextRound(): void {
-      state.selectedLatLng = null
-      state.polyline!.setMap(null)
-      state.isGuessButtonClicked = false
-      state.isSelected = false
+      state.selectedLatLng = null;
+      state.polyline!.setMap(null);
+      state.isGuessButtonClicked = false;
+      state.isSelected = false;
 
       if (viewport.width < 450) {
-        hideMap()
+        hideMap();
       } else {
-        mouseOutMap()
+        mouseOutMap();
       }
 
-      removeMarkers()
-      context.emit('goToNextRound')
+      removeMarkers();
+      context.emit("goToNextRound");
     }
 
     function playAgain(): void {
-      state.selectedLatLng = null
-      state.polyline!.setMap(null)
-      state.isGuessButtonClicked = false
-      state.isSelected = false
-      state.dialogSummary = false
+      state.selectedLatLng = null;
+      state.polyline!.setMap(null);
+      state.isGuessButtonClicked = false;
+      state.isSelected = false;
+      state.dialogSummary = false;
 
       if (viewport.width < 450) {
-        hideMap()
+        hideMap();
       } else {
-        mouseOutMap()
+        mouseOutMap();
       }
 
-      removeMarkers()
-      context.emit('playAgain')
+      removeMarkers();
+      context.emit("playAgain");
     }
 
     function mouseOverMap(): void {
       if (viewport.width > 450) {
-        document.getElementById('map')!.style.opacity = '1.0'
-        document.getElementById('map')!.style.transform = 'scale(1)'
+        document.getElementById("map")!.style.opacity = "1.0";
+        document.getElementById("map")!.style.transform = "scale(1)";
       }
     }
 
     function mouseOutMap(): void {
       if (!state.isSelected && viewport.width > 450) {
-        document.getElementById('map')!.style.opacity = '0.7'
-        document.getElementById('map')!.style.transform = 'scale(0.75)'
+        document.getElementById("map")!.style.opacity = "0.7";
+        document.getElementById("map")!.style.transform = "scale(0.75)";
       }
     }
 
     watch(
       () => props.randomLatLng,
-      (newVal: google.maps.LatLng | undefined, oldVal: google.maps.LatLng | undefined) => {
+      (
+        newVal: google.maps.LatLng | undefined,
+        oldVal: google.maps.LatLng | undefined
+      ) => {
         if (newVal !== undefined) {
-          state.map!.addListener('click', (e) => {
-            removeMarkers()
-            putMarker(e.latLng)
-            state.selectedLatLng = e.latLng
-          })
+          state.map!.addListener("click", (e) => {
+            removeMarkers();
+            putMarker(e.latLng);
+            state.selectedLatLng = e.latLng;
+          });
         }
       }
-    )
+    );
 
     onMounted(() => {
-      state.map = new google.maps.Map(document.getElementById('map') as HTMLElement, {
-          center: {lat: 37.869260, lng: -122.254811},
+      state.map = new google.maps.Map(
+        document.getElementById("map") as HTMLElement,
+        {
+          center: { lat: 37.86926, lng: -122.254811 },
           zoom: 1,
           fullscreenControl: false,
           mapTypeControl: false,
           streetViewControl: false,
-      })      
-    })
+        }
+      );
+    });
 
     return {
       state,
@@ -249,9 +267,9 @@ export default defineComponent({
       selectLocation,
       goToNextRound,
       playAgain,
-    }
-  }
-})
+    };
+  },
+});
 </script>
 
 <style scoped>
@@ -261,14 +279,17 @@ export default defineComponent({
   left: 10px;
   z-index: 3;
   opacity: 0.7;
-  height: 320px;
-  width: 480px;
+  height: 576px;
+  width: 756px;
   transform-origin: bottom left;
   transform: scale(0.75);
-  transition: transform 0.3s; 
+  transition: transform 0.3s;
 }
 
-#make-guess-button, #guess-button, #next-button, #summary-button {
+#make-guess-button,
+#guess-button,
+#next-button,
+#summary-button {
   position: absolute;
   bottom: 10px;
   left: 10px;
@@ -283,25 +304,29 @@ export default defineComponent({
   padding: 10px 60px;
 }
 
-#make-guess-button, #guess-button {
+#make-guess-button,
+#guess-button {
   background-color: #212121;
   width: 360px;
 }
 
-#next-button, #summary-button {
-  background-color: #F44336;
+#next-button,
+#summary-button {
+  background-color: #f44336;
   width: 480px;
 }
 
 #guess-button:hover {
-  opacity: 1.0;
+  opacity: 1;
 }
 
 @media (max-width: 900px) {
-  #make-guess-button, #guess-button {
+  #make-guess-button,
+  #guess-button {
     width: 300px;
   }
-  #next-button, #summary-button {
+  #next-button,
+  #summary-button {
     width: 400px;
   }
   #map {
@@ -315,11 +340,12 @@ export default defineComponent({
     bottom: -280px;
     height: 200px;
     width: 300px;
-    opacity: 1.0;
+    opacity: 1;
     transition: transform 1s;
   }
 
-  #next-button, #summary-button {
+  #next-button,
+  #summary-button {
     width: 300px;
   }
 
