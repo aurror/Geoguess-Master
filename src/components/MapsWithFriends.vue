@@ -381,8 +381,8 @@ export default defineComponent({
   left: 10px;
   z-index: 3;
   opacity: 0.7;
-  height: 576px;
-  width: 756px;
+  height: 864px;
+  width: 1134px;
   transform-origin: bottom left;
   transform: scale(0.4762);
   transition: transform 0.3s;
