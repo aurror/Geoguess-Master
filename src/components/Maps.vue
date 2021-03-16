@@ -224,7 +224,7 @@ export default defineComponent({
     function mouseOutMap(): void {
       if (!state.isSelected && viewport.width > 450) {
         document.getElementById("map")!.style.opacity = "0.7";
-        document.getElementById("map")!.style.transform = "scale(0.4762)";
+        document.getElementById("map")!.style.transform = "scale(0.37)";
       }
     }
 
@@ -282,7 +282,7 @@ export default defineComponent({
   height: 864px;
   width: 1134px;
   transform-origin: bottom left;
-  transform: scale(0.4762);
+  transform: scale(0.37);
   transition: transform 0.3s;
 }
 
