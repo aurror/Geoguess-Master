@@ -282,7 +282,7 @@ export default defineComponent({
   height: 576px;
   width: 756px;
   transform-origin: bottom left;
-  transform: scale(0.75);
+  transform: scale(0.4762);
   transition: transform 0.3s;
 }
 
